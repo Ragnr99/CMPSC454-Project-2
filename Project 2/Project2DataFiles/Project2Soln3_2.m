@@ -52,19 +52,18 @@ for i = 1:size(result1, 2)
     p1 = [result1(:, i); 1];
     p2 = [result2(:, i); 1];
     
-    % Cross product matrices for p1 and p2 to enforce the epipolar constraint
+    % cross product matrices p1 and p2 for epipolar constraint
     crossP1 = [0, -p1(3), p1(2); p1(3), 0, -p1(1); -p1(2), p1(1), 0];
     crossP2 = [0, -p2(3), p2(2); p2(3), 0, -p2(1); -p2(2), p2(1), 0];
     
-    % Skew symmetric matrices applied to the camera projection matrices
+    % skew symmetric matrices applied to the camera projection matrices
     A = [crossP1 * P1; crossP2 * P2];
     
     % Singular Value Decomposition (SVD) to solve for the 3D point
     [~, ~, V] = svd(A);
-    X = V(:, end); % The last column of V
-    X = X / X(4); % Homogeneous normalization
+    X = V(:, end); 
+    X = X / X(4); % normalize
     
-    % Store the 3D point
     points3D(:, i) = X(1:3);
 end
 
@@ -84,4 +83,5 @@ title('Original 3D Points');
 xlabel('X'); ylabel('Y'); zlabel('Z');
 axis equal; % For equal aspect ratio
 grid on;
-disp(pts3D - points3D)
+mse = mean(sum((points3D - pts3D).^2, 1));
+sgtitle("Mean Squared Error: " + mse);
