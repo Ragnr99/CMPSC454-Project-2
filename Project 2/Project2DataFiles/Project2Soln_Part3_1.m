@@ -1,33 +1,62 @@
 clear;
 load("mocapPoints3D.mat");
-%load("Parameters_V1.mat");
-load("Parameters_V2.mat");
-%image = imread('im1corrected.jpg');
-image = imread('im2corrected.jpg');
 
 % ~~~ QUESTION 3.1 ~~~
 
 % convert 3D world coordinates to homogeneous coordinates
 worldHomog = [pts3D; ones(1, size(pts3D, 2))];
 
-K = Parameters.Kmat; 
-R = Parameters.Rmat; 
-t = Parameters.position;
+% parameters_V1
+load("Parameters_V1.mat");
+image1 = imread('im1corrected.jpg');
+K1 = Parameters.Kmat; 
+R1 = Parameters.Rmat; 
+t1 = Parameters.position;
 
 % P = K * [R|t]
-P = K * [R, -R * t'];
+P1 = K1 * [R1, -R1 * t1'];
 
 % project from 3D world coordinates to 2D image coordinates
-imageHomog = P * worldHomog;
+imageHomog1 = P1 * worldHomog;
+
+% Normalize homogeneous coordinates
+x1 = imageHomog1(1, :) ./ imageHomog1(3, :);
+y1 = imageHomog1(2, :) ./ imageHomog1(3, :);
+
+result1 = [x1; y1];
+
+% parameters_V2
+load("Parameters_V2.mat");
+image2 = imread('im2corrected.jpg');
+K2 = Parameters.Kmat; 
+R2 = Parameters.Rmat; 
+t2 = Parameters.position;
+
+% P = K * [R|t]
+P2 = K2 * [R2, -R2 * t2'];
+
+% project from 3D world coordinates to 2D image coordinates
+imageHomog2 = P2 * worldHomog;
 
 % normalize homogeneous coordinates
-x = imageHomog(1, :) ./ imageHomog(3, :);
-y = imageHomog(2, :) ./ imageHomog(3, :);
+x2 = imageHomog2(1, :) ./ imageHomog2(3, :);
+y2 = imageHomog2(2, :) ./ imageHomog2(3, :);
 
-result = [x; y];
+result2 = [x2; y2];
 
-imshow(image);
+figure;
+% first image
+subplot(1, 2, 1);
+imshow(image1);
 hold on;
-plot(result(1, :), result(2, :), 'ro', 'MarkerSize', 2);
+plot(result1(1, :), result1(2, :), 'ro', 'MarkerSize', 2);
 hold off;
+title('Image 1');
 
+% second imag
+subplot(1, 2, 2);
+imshow(image2);
+hold on;
+plot(result2(1, :), result2(2, :), 'ro', 'MarkerSize', 2);
+hold off;
+title('Image 2');
