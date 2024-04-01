@@ -15,10 +15,10 @@ R = Parameters.Rmat;
 t = Parameters.position;
 
 % P = K * [R|t]
-Pmat = K * [R, -R * t'];
+P = K * [R, -R * t'];
 
 % project from 3D world coordinates to 2D image coordinates
-imageHomog = Pmat * worldHomog;
+imageHomog = P * worldHomog;
 
 % normalize homogeneous coordinates
 x = imageHomog(1, :) ./ imageHomog(3, :);
