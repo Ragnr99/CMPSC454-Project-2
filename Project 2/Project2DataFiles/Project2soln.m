@@ -1,30 +1,30 @@
-% Load camera parameters
-load('Parameters_V1.mat');
+clear;
+load("mocapPoints3D.mat");
+%load("Parameters_V1.mat");
+load("Parameters_V2.mat");
+%image = imread('im1corrected.jpg');
+image = imread('im2corrected.jpg');
 
-% Load 3D mocap points
-load('mocapPoints3D.mat');
+% convert 3D world coordinates to homogeneous coordinates
+worldHomog = [pts3D; ones(1, size(pts3D, 2))];
 
-K = data_v1.Parameters.Kmat; 
-R = data_v1.Parameters.Rmat; 
-t = data_v1.Parameters.position;
-P = K * [R, t'];
+K = Parameters.Kmat; 
+R = Parameters.Rmat; 
+t = Parameters.position;
 
-pinhole = zeros(3, num_points);
-point = zeros(4,1)
+% P = K * [R|t]
+Pmat = K * [R, -R * t'];
 
-% Perform 3D to 2D projection for all points
-for i = 1:num_points
-    for(j = 1:3) 
-        point(j,1) = (pts3D(j, i));
-        point(4,1) = 1;
-    end
-    result = P * point;  
-    pinhole(:, i) = result
-end
+% project from 3D world coordinates to 2D image coordinates
+imageHomog = Pmat * worldHomog;
 
-% Load the image
-image = imread('im1corrected.jpg');
-imshow(image)
+% normalize homogeneous coordinates
+x = imageHomog(1, :) ./ imageHomog(3, :);
+y = imageHomog(2, :) ./ imageHomog(3, :);
 
+result = [x; y];
 
-
+imshow(image);
+hold on;
+plot(result(1, :), result(2, :), 'ro', 'MarkerSize', 5); % Plot red points with a marker size of 5
+hold off;
