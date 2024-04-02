@@ -109,12 +109,18 @@ planeCoefficients = [normalPlane, -dot(normalPlane, planePoint)];
 % Display the floor plane equation
 fprintf('plane equation: %fx + %fy + %fz + %f = 0\n', planeCoefficients);
 
-% Verify that the triangulated floor points lie on the computed plane
-pointDistances = planeCoefficients(1:3) * points3D - repmat(planeCoefficients(4), 1, size(points3D, 2));
-maxPointDistance = max(abs(pointDistances));
+% Define the range of x and y values
+[x, y] = meshgrid(-10:0.1:10, -10:0.1:10);
 
-if maxPointDistance < 1e-3
-    disp('The triangulated floor points lie on the computed floor plane');
-else
-    disp('The triangulated floor points do not lie on the computed floor plane');
-end
+% Calculate z values using the plane equation
+z = (-planeCoefficients(1)*x - planeCoefficients(2)*y - planeCoefficients(4)) / planeCoefficients(3);
+
+% Plot the surface
+surf(x, y, z);
+
+xlabel('X');
+ylabel('Y');
+zlabel('Z');
+title('Fitted Plane');
+axis equal;
+grid on;
