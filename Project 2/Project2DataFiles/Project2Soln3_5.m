@@ -68,7 +68,7 @@ for i = 1:size(result1, 2)
     points3D(:, i) = X(1:3);
 end
 
-% ~~~ QUESTION 3.3 ~~~
+% ~~~ QUESTION 3.5 ~~~
 % Measure 3D points on the floor
 figure;
 imshow(image1); 
