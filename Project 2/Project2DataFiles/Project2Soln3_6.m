@@ -67,6 +67,22 @@ for i = 1:size(result1, 2)
     
     points3D(:, i) = X(1:3);
 end
+% ~~~ QUESTION 3.4 ~~~
+% Compute the relative rotation and translation between the two cameras
+R1inv = R1'; % Inverse of a rotation matrix is its transpose
+t1inv = -R1inv * t1'; % t1' converts the vector to a column vector
+
+R2wrt1 = R2 * R1inv; % Rotation of camera 2 w.r.t. camera 1
+t2wrt1 = R2 * t1inv + t2; % Translation of camera 2 w.r.t. camera 1
+
+% Construct the essential matrix
+E = R2wrt1 * skew(t2wrt1);
+%disp("E: " + E)
+
+% Compute the fundamental matrix from camera calibration parameters
+Fcalib = inv(K2')' * E * inv(K1);
+disp("Fcalib: " + Fcalib)
+
 
 % ~~~ QUESTION 3.5 ~~~
 % Measure 3D points on the floor
@@ -200,13 +216,51 @@ for i=1:length(L)
     end
 end
 
+disp("F.2: " + F)
 
-for j=1:3
-    for i=1:3
-        fprintf('%10g ',10000*F(j,i));
-    end
-    fprintf('\n');
+
+% ~~~ QUESTION 3.6.1 ~~~
+% Initialize variables to accumulate squared distances
+sedCalib = 0;
+sedReal = 0;
+
+% SED for FCalib
+for i = 1:numel(x1)
+    % epipolar lines
+    lineIn2From1 = Fcalib * [x1(i); y1(i); 1];
+    lineIn1From2 = Fcalib' * [x2(i); y2(i); 1];
+    
+    % squared distances
+    squaredDist2From1 = (lineIn2From1(1) * x2(i) + lineIn2From1(2) * y2(i) + lineIn2From1(3))^2 / (lineIn2From1(1)^2 + lineIn2From1(2)^2);
+    squaredDist1From2 = (lineIn1From2(1) * x1(i) + lineIn1From2(2) * y1(i) + lineIn1From2(3))^2 / (lineIn1From2(1)^2 + lineIn1From2(2)^2);
+    
+    sedCalib = sedCalib + squaredDist2From1 + squaredDist1From2;
 end
 
+% mean SED error for Fcalib
+sedCalib = sedCalib / (2 * numel(x1));
 
+% SED for F
+for i = 1:numel(x1)
+    % epipolar lines
+    lineIn2From1 = F * [x1(i); y1(i); 1];
+    lineIn1From2 = F' * [x2(i); y2(i); 1];
+    
+    % compute squared distances
+    squaredDist2From1 = (lineIn2From1(1) * x2(i) + lineIn2From1(2) * y2(i) + lineIn2From1(3))^2 / (lineIn2From1(1)^2 + lineIn2From1(2)^2);
+    squaredDist1From2 = (lineIn1From2(1) * x1(i) + lineIn1From2(2) * y1(i) + lineIn1From2(3))^2 / (lineIn1From2(1)^2 + lineIn1From2(2)^2);
+    
+    sedReal = sedReal + squaredDist2From1 + squaredDist1From2;
+end
 
+% mean SED error for F
+sedReal = sedReal / (2 * numel(x1));
+
+fprintf('SED error for Fcalib: %f\n', sedCalib);
+fprintf('SED error for F: %f\n', sedReal);
+
+function S = skew(v)
+    S = [0    -v(3)  v(2);
+         v(3)   0   -v(1);
+        -v(2)  v(1)    0];
+end
